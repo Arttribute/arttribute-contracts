@@ -12,34 +12,59 @@ contract ArttributeRegistry {
         address owner;
         string title;
         string details;
-        bool isActive;
     }
 
-    mapping(uint256 => Item) public items;
+    Item[] public items;
 
+    event ItemCreated(address owner, uint256 id, string title, string details);
+
+    /**
+     * @dev Create an item.
+     * @param _title Title of the item.
+     * @param _details Details of the item.
+     */
     function createItem(string memory _title, string memory _details) public {
-         _itemIds.increment();
+        _itemIds.increment();
         uint256 newItemId = _itemIds.current();
-        items[newItemId] = Item(msg.sender, _title, _details, true);
+        items.push(Item(msg.sender, _title, _details));
+        emit ItemCreated(msg.sender, newItemId, _title, _details);
     }
 
-    //get item by id
-    function getItem(uint256 _itemId) public view returns (Item memory) {
-         return items[_itemId];
+    /**
+     * @dev Get the item details.
+     * @param _id Id of the item.
+     */
+    function getItem(uint256 _id) public view returns (Item memory) {
+        return items[_id];
     }
 
-    //get item by owner
+    /**
+     * @dev Get items by onwner.
+     * @param _owner Owner of the item.
+     */
     function getItemsByOwner(address _owner) public view returns (Item[] memory) {
-        uint256 itemCount = _itemIds.current();
-        Item[] memory result = new Item[](itemCount);
-        uint256 counter = 0;
-        for (uint256 i = 1; i <= itemCount; i++) {
+        uint256 itemCount = 0;
+        for (uint256 i = 0; i < items.length; i++) {
             if (items[i].owner == _owner) {
-                result[counter] = items[i];
-                counter++;
+                itemCount++;
             }
         }
-        return result;
+        Item[] memory itemsByOwner = new Item[](itemCount);
+        uint256 index = 0;
+        for (uint256 i = 0; i < items.length; i++) {
+            if (items[i].owner == _owner) {
+                itemsByOwner[index] = items[i];
+                index++;
+            }
+        }
+        return itemsByOwner;
+    }
+    
+    /**
+     * @dev Get all items.
+     */
+    function getAllItems() public view returns (Item[] memory) {
+        return items;
     }
 
 }
