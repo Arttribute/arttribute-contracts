@@ -1,73 +1,61 @@
+// test/Arttribute.js
+
+const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("Arttribute Items", function () {
-  it("Handles item creation", async function () {
-    //Deploying ArttributeRegistry contract
-    const ArttributeRegistry = await ethers.getContractFactory(
-      "ArttributeRegistry"
-    );
-    const arttributeRegistryContract = await ArttributeRegistry.deploy();
+describe("Arttribute", function () {
+  let Arttribute, arttribute, owner, addr1, addr2;
+  let item1 = ["Artwork1", "Description", false];
 
-    //Create new Item
-    await arttributeRegistryContract.createItem("testItem", "testUrl");
-    await arttributeRegistryContract.createItem("testItem", "testUrl");
-    await arttributeRegistryContract.createItem("testItem", "testUrl");
-    await arttributeRegistryContract.createItem("testItem", "testUrl");
-
-    //Get Items
-    const items = await arttributeRegistryContract.getAllItems();
-    console.log(items);
-    //Get Items by owner
-    const itemsByOwner = await arttributeRegistryContract.getItemsByOwner(
-      "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
-    );
-    console.log(itemsByOwner);
+  beforeEach(async function () {
+    Arttribute = await ethers.getContractFactory("Arttribute");
+    [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
+    arttribute = await Arttribute.deploy();
   });
-});
 
-describe("Arttribute Certificates", function () {
-  it("Handles certificates", async function () {
-    //Deploying ArttributeCertificates contract
-    const ArttributeCertificates = await ethers.getContractFactory(
-      "ArttributeCertificates"
-    );
-    const arttributeCertificatesContract =
-      await ArttributeCertificates.deploy();
+  it("should allow creation of an item", async function () {
+    await arttribute.createItem(...item1);
+    const item = await arttribute.getItem(1);
+    expect(item.title).to.equal(item1[0]);
+    expect(item.details).to.equal(item1[1]);
+    expect(item.requiresPayment).to.equal(item1[2]);
+  });
 
-    //Minting certificate
-    await arttributeCertificatesContract.mintCertificate(
-      "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
-      0,
-      "testDetails"
-    );
+  it("should not mint a certificate for non-existent item", async function () {
+    await expect(
+      arttribute.mintCertificate(addr1.address, 2, "Certificate for Artwork2")
+    ).to.be.revertedWith("Item does not exist");
+  });
 
-    await arttributeCertificatesContract.mintCertificate(
-      "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+  it("should mint a certificate for an existing item", async function () {
+    await arttribute.createItem(...item1);
+    await arttribute.mintCertificate(
+      addr1.address,
       1,
-      "testDetails"
+      "Certificate for Artwork1"
     );
+    const certificate = await arttribute.getCertificate(1);
+    expect(certificate.details).to.equal("Certificate for Artwork1");
+  });
 
-    await arttributeCertificatesContract.mintCertificate(
-      "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
-      2,
-      "testDetails"
+  it("should not mint a certificate if required payment is not sent", async function () {
+    await arttribute.createItem("Artwork2", "Description for Artwork2", true);
+    await expect(
+      arttribute.mintCertificate(addr1.address, 1, "Certificate for Artwork2")
+    ).to.be.revertedWith("No amount sent");
+  });
+
+  it("should mint a certificate if required payment is sent", async function () {
+    await arttribute.createItem("Artwork2", "Description for Artwork2", true);
+    await arttribute.mintCertificate(
+      addr1.address,
+      1,
+      "Certificate for Artwork2",
+      {
+        value: ethers.parseEther("0.1"),
+      }
     );
-
-    await arttributeCertificatesContract.mintCertificate(
-      "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
-      3,
-      "testDetails"
-    );
-
-    //Get Certificate
-    const certificate = await arttributeCertificatesContract.getCertificate(1);
-    console.log(certificate);
-
-    //Get certifcate by owner
-    const certificateByOwner =
-      await arttributeCertificatesContract.getCertificatesByOwner(
-        "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
-      );
-    console.log(certificateByOwner);
+    const certificate = await arttribute.getCertificate(1);
+    expect(certificate.details).to.equal("Certificate for Artwork2");
   });
 });
