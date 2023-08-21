@@ -19,6 +19,7 @@ contract Arttribute is ERC721 {
     struct Certificate{
         address owner;
         uint256 licensedItemId;
+        uint256 amountGiven;
         string details;
     }
     
@@ -57,13 +58,17 @@ contract Arttribute is ERC721 {
              _tokenIds.increment();
             uint256 newTokenId = _tokenIds.current();
             _safeMint(recipient, newTokenId);
-            certificates[newTokenId] = Certificate(recipient, itemId, details);
+            certificates[newTokenId] = Certificate(recipient, itemId, msg.value, details);
             return newTokenId;
         }else{
+            if(msg.value > 0){
+                //In case of donations
+                payable(items[itemId].owner).transfer(msg.value);
+            }
             _tokenIds.increment();
             uint256 newTokenId = _tokenIds.current();
             _safeMint(recipient, newTokenId);
-            certificates[newTokenId] = Certificate(recipient, itemId, details);
+            certificates[newTokenId] = Certificate(recipient, itemId, msg.value,  details);
             return newTokenId;
         }
         
@@ -84,6 +89,6 @@ contract Arttribute is ERC721 {
      */
     function getItem(uint256 _id) public view returns (Item memory) {
         return items[_id];
-    }
+    }   
 
 }

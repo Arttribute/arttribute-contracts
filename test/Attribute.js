@@ -58,4 +58,32 @@ describe("Arttribute", function () {
     const certificate = await arttribute.getCertificate(1);
     expect(certificate.details).to.equal("Certificate for Artwork2");
   });
+
+  it("should mint a certificate if no payment is required but sent", async function () {
+    await arttribute.createItem("Artwork2", "Description for Artwork2", false);
+    await arttribute.mintCertificate(
+      addr1.address,
+      1,
+      "Certificate for Artwork2",
+      {
+        value: ethers.parseEther("0.1"),
+      }
+    );
+    const certificate = await arttribute.getCertificate(1);
+    expect(certificate.details).to.equal("Certificate for Artwork2");
+  });
+
+  it("should mint a certificate if payment is not required but sent and, should reflect the amount sent", async function () {
+    await arttribute
+      .connect(addr1)
+      .createItem("Artwork2", "Description for Artwork2", false);
+    await arttribute
+      .connect(addr2)
+      .mintCertificate(addr1.address, 1, "Certificate for Artwork2", {
+        value: ethers.parseEther("0.1"),
+      });
+    const certificate = await arttribute.getCertificate(1);
+    expect(certificate.details).to.equal("Certificate for Artwork2");
+    expect(certificate.amountGiven).to.equal(ethers.parseEther("0.1"));
+  });
 });
