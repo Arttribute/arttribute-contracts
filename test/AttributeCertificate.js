@@ -16,9 +16,10 @@ describe("ArttributeCertificate", function () {
     it("Should mint a new certificate", async function () {
       const itemId = 1;
       const details = "Test certificate details";
+      const tokenUri = "Test token URI";
       await arttributeCertificate
         .connect(owner)
-        .mintCertificate(addr1.address, itemId, details);
+        .mintCertificate(addr1.address, itemId, details, tokenUri);
 
       const tokenId = 1;
       // Verify that the certificate was correctly minted
@@ -30,14 +31,14 @@ describe("ArttributeCertificate", function () {
     it("Should emit the CertificateMinted event upon minting", async function () {
       const itemId = 1;
       const details = "Test certificate details";
-
+      const tokenUri = "Test token URI";
       await expect(
         arttributeCertificate
           .connect(owner)
-          .mintCertificate(addr1.address, itemId, details)
+          .mintCertificate(addr1.address, itemId, details, tokenUri)
       )
         .to.emit(arttributeCertificate, "CertificateMinted")
-        .withArgs(1, addr1.address, itemId, details);
+        .withArgs(1, addr1.address, itemId, details, tokenUri);
     });
   });
 
