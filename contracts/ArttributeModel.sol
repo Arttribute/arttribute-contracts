@@ -21,7 +21,7 @@ contract ArttributeModel is ERC721URIStorage, Ownable {
     mapping(uint256 => Model) public models;
 
     // Mapping from token ID to artist's earnings.
-    mapping(uint256 => uint256) public artistEarnings;
+    mapping(uint256 => uint256) public modelOwnerEarnings;
 
     event ModelMinted(uint256 tokenId, address owner, uint256 itemId, string details, string tokenUri, uint256 priceToUse, uint256 acquisitionPrice);
     event ModelPriceUpdated(uint256 indexed tokenId, uint256 newPrice);
@@ -59,8 +59,8 @@ contract ArttributeModel is ERC721URIStorage, Ownable {
     //model owner can withdraw his earnings
     function withdrawEarnings(uint256 _tokenId) external {
         require(ownerOf(_tokenId) == msg.sender, "Only the owner can withdraw his earnings");
-        uint256 amount = artistEarnings[_tokenId];
-        artistEarnings[_tokenId] = 0;
+        uint256 amount = modelOwnerEarnings[_tokenId];
+        modelOwnerEarnings[_tokenId] = 0;
         payable(msg.sender).transfer(amount);
     }
 
@@ -68,21 +68,21 @@ contract ArttributeModel is ERC721URIStorage, Ownable {
     function acquireModel(uint256 _tokenId) external payable {
         require(_exists(_tokenId), "Model does not exist");
         require(msg.value >= models[_tokenId].acquisitionPrice, "Insufficient funds to acquire the model");
-        artistEarnings[_tokenId] += msg.value;
+        modelOwnerEarnings[_tokenId] += msg.value;
     }
 
     //model use
     function useModel(uint256 _tokenId) external payable {
         require(_exists(_tokenId), "Model does not exist");
         require(msg.value >= models[_tokenId].priceToUse, "Insufficient funds to use the model");
-        artistEarnings[_tokenId] += msg.value;
+        modelOwnerEarnings[_tokenId] += msg.value;
     }
     
     //artist can withdraw his earnings
-    function withdrawArtistEarnings(uint256 _tokenId) external {
+    function withdrawModelOwnerEarnings(uint256 _tokenId) external {
         require(ownerOf(_tokenId) == msg.sender, "Only the artist can withdraw his earnings");
-        uint256 amount = artistEarnings[_tokenId];
-        artistEarnings[_tokenId] = 0;
+        uint256 amount = modelOwnerEarnings[_tokenId];
+        modelOwnerEarnings[_tokenId] = 0;
         payable(msg.sender).transfer(amount);
     }
     
