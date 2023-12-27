@@ -56,12 +56,11 @@ contract ArttributeModel is ERC721URIStorage, Ownable {
         emit ModelPriceUpdated(_tokenId, _newAcquisitionPrice);
     }
 
-    //model owner can withdraw his earnings
-    function withdrawEarnings(uint256 _tokenId) external {
-        require(ownerOf(_tokenId) == msg.sender, "Only the owner can withdraw his earnings");
-        uint256 amount = modelOwnerEarnings[_tokenId];
-        modelOwnerEarnings[_tokenId] = 0;
-        payable(msg.sender).transfer(amount);
+    //model use
+    function useModel(uint256 _tokenId) external payable {
+        require(_exists(_tokenId), "Model does not exist");
+        require(msg.value >= models[_tokenId].priceToUse, "Insufficient funds to use the model");
+        modelOwnerEarnings[_tokenId] += msg.value;
     }
 
     //model acquisition
@@ -70,17 +69,10 @@ contract ArttributeModel is ERC721URIStorage, Ownable {
         require(msg.value >= models[_tokenId].acquisitionPrice, "Insufficient funds to acquire the model");
         modelOwnerEarnings[_tokenId] += msg.value;
     }
-
-    //model use
-    function useModel(uint256 _tokenId) external payable {
-        require(_exists(_tokenId), "Model does not exist");
-        require(msg.value >= models[_tokenId].priceToUse, "Insufficient funds to use the model");
-        modelOwnerEarnings[_tokenId] += msg.value;
-    }
     
-    //artist can withdraw his earnings
-    function withdrawModelOwnerEarnings(uint256 _tokenId) external {
-        require(ownerOf(_tokenId) == msg.sender, "Only the artist can withdraw his earnings");
+   //model owner can withdraw his earnings
+    function withdrawEarnings(uint256 _tokenId) external {
+        require(ownerOf(_tokenId) == msg.sender, "Only the owner can withdraw his earnings");
         uint256 amount = modelOwnerEarnings[_tokenId];
         modelOwnerEarnings[_tokenId] = 0;
         payable(msg.sender).transfer(amount);
