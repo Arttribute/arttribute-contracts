@@ -28,7 +28,7 @@ contract ArttributeMarketplace is ERC721URIStorage, Ownable {
 
     uint256 public constant modelOwnerCommission = 10; // 10% cut for model owners
 
-    constructor() ERC721("AI Artisan NFT", "GENITM") {}
+    constructor() ERC721("AI ART NFT", "AIART") {}
 
     function mintItem(uint256 modelId, string memory tokenUri) public returns (uint256) {
         _itemIds.increment();

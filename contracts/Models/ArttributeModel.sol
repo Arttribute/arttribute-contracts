@@ -20,7 +20,7 @@ contract ArttributeModel is ERC721URIStorage, Ownable {
 
     mapping(uint256 => Model) public models;
 
-    // Mapping from token ID to artist's earnings.
+    // Mapping from token ID to model owner's earnings.
     mapping(uint256 => uint256) public modelOwnerEarnings;
 
     event ModelMinted(uint256 tokenId, address owner, uint256 itemId, string details, string tokenUri, uint256 priceToUse, uint256 acquisitionPrice);
