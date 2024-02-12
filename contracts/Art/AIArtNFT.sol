@@ -39,5 +39,4 @@ contract AIArtNFT is ERC721Royalty, Ownable {
         require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
         return _tokenURIs[tokenId];
     }
-
 }
