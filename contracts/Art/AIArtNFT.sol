@@ -3,25 +3,29 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "../interfaces/IAIModelRegistry.sol";
 
 contract AIArtNFT is ERC721Royalty, Ownable {
     uint256 private _tokenIds;
     mapping(uint256 => string) private _tokenURIs;
+    IAIModelRegistry private _modelRegistry;
 
-    // Constructor to set the name and symbol of the NFT collection
-    constructor() ERC721("AI ART NFT", "AIART") {}
+    constructor(address modelRegistryAddress) ERC721("AI Art NFT", "AIART") {
+        _modelRegistry = IAIModelRegistry(modelRegistryAddress);
+    }
 
-    // Function to mint a new AI art NFT
-    function mintAIArt(address recipient, string memory _tokenURI, uint96 royaltyFraction) public returns (uint256) {
+    function mintAIArt(uint256 modelId, address recipient, string memory artURI) public onlyOwner returns (uint256) {
+        uint96 royaltyPercentage = _modelRegistry.getModelRoyalty(modelId);
+        address modelOwner = _modelRegistry.ownerOf(modelId);
+
         _tokenIds++;
-        uint256 newItemId = _tokenIds;
+        uint256 newArtId = _tokenIds;
 
-        _mint(recipient, newItemId);
-        _setTokenURI(newItemId, _tokenURI);
-        // Set the royalty info for this NFT to pay the AI model owner
-        _setTokenRoyalty(newItemId, owner(), royaltyFraction);
+        _mint(recipient, newArtId);
+        _setTokenURI(newArtId, artURI);
+        _setTokenRoyalty(newArtId, modelOwner, royaltyPercentage);
 
-        return newItemId;
+        return newArtId;
     }
 
     // Override required by Solidity for _setTokenURI
@@ -36,8 +40,4 @@ contract AIArtNFT is ERC721Royalty, Ownable {
         return _tokenURIs[tokenId];
     }
 
-    // Function to update royalty information
-    function setTokenRoyalty(uint256 tokenId, address recipient, uint96 fraction) public onlyOwner {
-        _setTokenRoyalty(tokenId, recipient, fraction);
-    }
 }
