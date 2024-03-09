@@ -130,5 +130,4 @@ contract AIArtNFTMarketplace is Ownable, ReentrancyGuard {
         delete listings[nftContract][tokenId];
     }
 
-    // Additional functions as needed for auction handling, listing management, etc.
 }

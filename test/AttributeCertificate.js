@@ -50,3 +50,87 @@ describe("ArttributeCertificate", function () {
     });
   });
 });
+
+const { expect } = require("chai");
+const { ethers } = require("hardhat");
+
+describe("AIModelRegistry", function () {
+  let AIModelRegistry;
+  let aiModelRegistry;
+  let owner, addr1;
+
+  beforeEach(async function () {
+    [owner, addr1] = await ethers.getSigners();
+    AIModelRegistry = await ethers.getContractFactory("AIModelRegistry");
+    aiModelRegistry = await AIModelRegistry.deploy();
+    await aiModelRegistry.deployed();
+  });
+
+  it("Should deploy successfully with correct name and symbol", async function () {
+    expect(await aiModelRegistry.name()).to.equal("AI Model");
+    expect(await aiModelRegistry.symbol()).to.equal("AIMDL");
+  });
+
+  it("Should mint a model and set royalty correctly", async function () {
+    const mintTx = await aiModelRegistry.mintModel(
+      addr1.address,
+      "http://example.com/model1",
+      1000
+    ); // 10% royalty
+    await mintTx.wait();
+
+    const newModelId = await aiModelRegistry.modelIds();
+    expect(await aiModelRegistry.ownerOf(newModelId)).to.equal(addr1.address);
+    expect(await aiModelRegistry.getModelRoyalty(newModelId)).to.equal(1000);
+  });
+
+  it("Should revert minting with royalty percentage out of bounds", async function () {
+    await expect(
+      aiModelRegistry.mintModel(
+        addr1.address,
+        "http://example.com/model2",
+        10001
+      )
+    ).to.be.revertedWith("Royalty percentage out of bounds");
+  });
+});
+
+describe("AIArtNFT", function () {
+  let AIArtNFT, AIModelRegistry;
+  let aiArtNFT, aiModelRegistry;
+  let owner, addr1;
+
+  beforeEach(async function () {
+    [owner, addr1] = await ethers.getSigners();
+    AIModelRegistry = await ethers.getContractFactory("AIModelRegistry");
+    aiModelRegistry = await AIModelRegistry.deploy();
+    await aiModelRegistry.deployed();
+
+    AIArtNFT = await ethers.getContractFactory("AIArtNFT");
+    aiArtNFT = await AIArtNFT.deploy(aiModelRegistry.address);
+    await aiArtNFT.deployed();
+  });
+
+  it("Should mint AI Art NFT with correct royalties from AI Model", async function () {
+    // First, mint a model
+    await aiModelRegistry
+      .connect(owner)
+      .mintModel(owner.address, "http://example.com/model1", 500); // 5% royalty
+    const modelId = await aiModelRegistry.modelIds();
+
+    // Now, mint AI Art NFT using the model
+    await aiArtNFT
+      .connect(owner)
+      .mintAIArt(modelId, addr1.address, "http://example.com/art1");
+    const newArtId = await aiArtNFT.tokenIds();
+
+    expect(await aiArtNFT.ownerOf(newArtId)).to.equal(addr1.address);
+    expect(await aiArtNFT.tokenURI(newArtId)).to.equal(
+      "http://example.com/art1"
+    );
+
+    const royaltyInfo = await aiArtNFT.royaltyInfo(newArtId, 10000); // Check royalty for 10000 wei sale
+    expect(royaltyInfo.royaltyAmount).to.equal(500); // 5% of 10000 wei
+    expect(royaltyInfo.receiver).to.equal(owner.address);
+  });
+});

@@ -10,7 +10,7 @@ contract AIArtNFT is ERC721Royalty, Ownable {
     mapping(uint256 => string) private _tokenURIs;
     IAIModelRegistry private _modelRegistry;
 
-    constructor(address modelRegistryAddress) ERC721("AI Art NFT", "AIART") {
+    constructor(address modelRegistryAddress) ERC721("AI ART NFT", "AIART") {
         _modelRegistry = IAIModelRegistry(modelRegistryAddress);
     }
 

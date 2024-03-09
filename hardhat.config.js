@@ -1,5 +1,6 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config({ path: __dirname + "/.env" });
+
 const projectId = process.env.PROJECT_ID;
 const privateKey = process.env.PRIVATE_KEY;
 module.exports = {
@@ -26,7 +27,7 @@ module.exports = {
     },
     basegoerli: {
       url: "https://goerli.base.org",
-      accounts: [privateKey.toString()],
+      accounts: [privateKey],
       gasPrice: 1000000000,
     },
     baselocal: {
