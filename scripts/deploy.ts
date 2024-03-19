@@ -10,6 +10,24 @@ async function main() {
     "ArttributeCertificate contract deployed to:",
     await contract.getAddress()
   );
+
+  const AIModelRegistry = await hre.ethers.getContractFactory(
+    "AIModelRegistry"
+  );
+  const aiModelRegistry = await AIModelRegistry.deploy();
+
+  await aiModelRegistry.waitForDeployment();
+  console.log(
+    "AIModelRegistry contract deployed to:",
+    await aiModelRegistry.getAddress()
+  );
+
+  const aiModelRegistryAddress = await aiModelRegistry.getAddress();
+  const AIArtNFT = await hre.ethers.getContractFactory("AIArtNFT");
+  const aiArtNFT = await AIArtNFT.deploy(aiModelRegistryAddress);
+
+  await aiArtNFT.waitForDeployment();
+  console.log("AIArtNFT contract deployed to:", await aiArtNFT.getAddress());
 }
 
 main()
